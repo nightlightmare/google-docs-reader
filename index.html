@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body style="position: relative;">
+  <style>
+    .previous-page {
+      width: 36px;
+      height: 36px;
+      z-index: 100;
+      position: absolute;
+      top: 8px;
+      right: 64px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background-color: white;
+      text-align: center;
+      line-height: 32px;
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+
+    .next-page {
+      width: 36px;
+      height: 36px;
+      z-index: 100;
+      position: absolute;
+      top: 8px;
+      right: 20px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background-color: white;
+      text-align: center;
+      line-height: 32px;
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+
+    body {
+      padding-top: 64px;
+    }
+  </style>
+  <textarea id="basic-example"></textarea>
+
+  <div class="previous-page" id="previous">&lsaquo;</div>
+  <div class="next-page" id="next">&rsaquo;</div>
+
+
+  <script src="https://cdn.tiny.cloud/1/q6on6tvpsfqcrvakg45zbq4ldsne3l923nysdaxqxfmxg5pe/tinymce/6/tinymce.min.js"
+    referrerpolicy="origin"></script>
+
+  <script>
+    const DOCUMENT_URL = `https://docs.google.com/document/d/e/2PACX-1vRYS8wyiXXNX_K2MKsdnQiP2f7LwfHiOlzxYPd-1C_3blZTZ-i08_BLAUnT_y-om2wAqtslcOIpFl7K/pub`;
+
+    tinymce.init({
+      selector: 'textarea#basic-example',
+      plugins: ['autoresize'],
+      toolbar: false,
+      menubar: false,
+      statusbar: null,
+      readonly: true,
+      resize: false,
+      body_class: "my_class"
+    });
+
+    const getDocument = async (documentUrl) => {
+      return fetch(documentUrl, {
+        method: 'GET'
+      }).then(async (data) => await data.text()).then((text) => {
+        const bodyStart = text.indexOf('doc-content') + 13;
+        text = text.slice(bodyStart);
+        const bodyEnd = text.indexOf('<script');
+
+        return text.slice(0, bodyEnd);
+      });
+    }
+
+    const pages = [];
+    let currentPage = 0;
+
+    getDocument(DOCUMENT_URL)
+      .then((text) => {
+        let result = text;
+        while (true) {
+          let pageBreak = result.indexOf('<p', 2000);
+          if (pageBreak === -1) {
+            pages.push(result);
+            break;
+          } else {
+            pages.push(result.slice(0, pageBreak));
+            result = result.slice(pageBreak);
+          }
+        }
+      })
+      .then(() => {
+        tinymce.activeEditor.setContent(pages[0]);
+      });
+
+    document.getElementById('previous').addEventListener('click', () => {
+      if (currentPage !== 0) {
+        currentPage--;
+        tinymce.activeEditor.setContent(pages[currentPage]);
+      }
+    });
+
+    document.getElementById('next').addEventListener('click', () => {
+      if (currentPage !== pages.length - 1) {
+        currentPage++;
+        tinymce.activeEditor.setContent(pages[currentPage]);
+      }
+    });
+  </script>
+</body>
+
+</html>
