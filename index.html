@@ -25,6 +25,11 @@
       box-sizing: border-box;
     }
 
+    .previous-page.bottom {
+      top: auto;
+      bottom: 8px;
+    }
+
     .next-page {
       width: 36px;
       height: 36px;
@@ -41,14 +46,37 @@
       box-sizing: border-box;
     }
 
+    .next-page.bottom {
+      top: auto;
+      bottom: 8px;
+    }
+
+    .page-counter {
+      position: absolute;
+      line-height: 36px;
+      top: 8px;
+      right: 110px;
+      vertical-align: middle;
+    }
+
+    .page-counter.bottom {
+      top: auto;
+      bottom: 8px;
+    }
+
     body {
       padding-top: 64px;
+      padding-bottom: 64px;
     }
   </style>
   <textarea id="basic-example"></textarea>
 
-  <div class="previous-page" id="previous">&lsaquo;</div>
-  <div class="next-page" id="next">&rsaquo;</div>
+  <div class="previous-page">&lsaquo;</div>
+  <div class="next-page">&rsaquo;</div>
+  <div class="page-counter"></div>
+  <div class="previous-page bottom">&lsaquo;</div>
+  <div class="next-page bottom">&rsaquo;</div>
+  <div class="page-counter bottom"></div>
 
 
   <script src="https://cdn.tiny.cloud/1/q6on6tvpsfqcrvakg45zbq4ldsne3l923nysdaxqxfmxg5pe/tinymce/6/tinymce.min.js"
@@ -80,6 +108,10 @@
       });
     }
 
+    const setCounterContent = (currentPage, pages) => {
+      Array.from(document.getElementsByClassName('page-counter')).forEach(element => element.innerHTML = `Страница ${currentPage + 1} из ${pages.length}`);
+    }
+
     const pages = [];
     let currentPage = 0;
 
@@ -99,20 +131,27 @@
       })
       .then(() => {
         tinymce.activeEditor.setContent(pages[0]);
+        setCounterContent(currentPage, pages);
       });
 
-    document.getElementById('previous').addEventListener('click', () => {
-      if (currentPage !== 0) {
-        currentPage--;
-        tinymce.activeEditor.setContent(pages[currentPage]);
-      }
+    Array.from(document.getElementsByClassName('previous-page')).forEach(element => {
+      element.addEventListener('click', () => {
+        if (currentPage !== 0) {
+          currentPage--;
+          setCounterContent(currentPage, pages);
+          tinymce.activeEditor.setContent(pages[currentPage]);
+        }
+      });
     });
 
-    document.getElementById('next').addEventListener('click', () => {
-      if (currentPage !== pages.length - 1) {
-        currentPage++;
-        tinymce.activeEditor.setContent(pages[currentPage]);
-      }
+    Array.from(document.getElementsByClassName('next-page')).forEach(element => {
+      element.addEventListener('click', () => {
+        if (currentPage !== pages.length - 1) {
+          currentPage++;
+          setCounterContent(currentPage, pages);
+          tinymce.activeEditor.setContent(pages[currentPage]);
+        }
+      });
     });
   </script>
 </body>
